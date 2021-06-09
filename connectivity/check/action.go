@@ -503,7 +503,9 @@ func (a *Action) ValidateFlows(ctx context.Context, pod, podIP string, reqs []fi
 	if hubbleClient == nil {
 		return
 	}
+	retriesOnEmpty := 2
 
+retryOnEmpty:
 	w := utils.NewWaitObserver(ctx, utils.WaitParameters{
 		Timeout:       defaults.FlowWaitTimeout,
 		RetryInterval: defaults.FlowRetryInterval,
@@ -519,6 +521,12 @@ retry:
 			err = fmt.Errorf("no flows returned")
 		}
 		if err := w.Retry(err); err != nil {
+			if len(flows) == 0 {
+				retriesOnEmpty--
+				if retriesOnEmpty > 0 {
+					goto retryOnEmpty
+				}
+			}
 			a.Failf("Unable to retrieve flows of pod %q: %s", pod, err)
 			return
 		}
