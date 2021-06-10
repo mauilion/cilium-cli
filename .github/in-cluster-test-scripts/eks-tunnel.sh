@@ -3,6 +3,7 @@
 set -x
 set -e
 
+
 # Enable Relay
 cilium hubble enable
 
@@ -18,3 +19,8 @@ cilium connectivity test --all-flows
 
 # Retrieve Cilium  status
 cilium status
+
+# Grab a sysdump and wait for it to be read.
+cilium sysdump --output-filename cilium-sysdump-out
+mkfifo /tmp/cilium-sysdump-out
+cat cilium-sysdump-out.zip >> /tmp/cilium-sysdump-out

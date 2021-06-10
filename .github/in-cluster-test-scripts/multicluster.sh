@@ -3,6 +3,9 @@
 set -x
 set -e
 
+# Create two FIFOs through which we'll pipe the sysdumps before the job terminates.
+# NOTE: This MUST be the first step in the script.
+
 # Set up contexts
 CONTEXT1=$(kubectl config view | grep "${CLUSTER_NAME_1}" | head -1 | awk '{print $2}')
 CONTEXT2=$(kubectl config view | grep "${CLUSTER_NAME_2}" | head -1 | awk '{print $2}')
@@ -59,3 +62,11 @@ cilium --context "${CONTEXT1}" status
 cilium --context "${CONTEXT1}" clustermesh status
 cilium --context "${CONTEXT2}" status
 cilium --context "${CONTEXT2}" clustermesh status
+
+# Grab a sysdump of each cluster and wait for it to be read.
+cilium --context "${CONTEXT1}" sysdump --output-filename cilium-sysdump-out-1
+mkfifo /tmp/cilium-sysdump-out-1
+cat cilium-sysdump-out-1.zip >> /tmp/cilium-sysdump-out-1
+cilium --context "${CONTEXT2}" sysdump --output-filename cilium-sysdump-out-2
+mkfifo /tmp/cilium-sysdump-out-2
+cat cilium-sysdump-out-2.zip >> /tmp/cilium-sysdump-out-2

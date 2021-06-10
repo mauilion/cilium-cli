@@ -88,9 +88,17 @@ jobs:
             --set cluster_name=${{ env.clusterName }} \
             --set cluster_cidr=${{ steps.cluster.outputs.cluster_cidr }}
 
-      - name: Wait for job
+      - name: Copy the sysdump and ensure that the job terminates successfully
         run: |
-          kubectl -n kube-system wait job/cilium-cli --for=condition=complete --timeout=15m
+          POD=""
+          while [[ "${POD}" == "" ]];
+          do
+            sleep 1;
+            POD=$(kubectl -n kube-system get pod -l job-name=cilium-cli -o jsonpath='{.items[*].metadata.name}');
+          done
+          kubectl -n kube-system wait pod/${POD} --for=condition=ready --timeout=5m
+          kubectl -n kube-system exec ${POD} -- sh -c 'while [ ! -p /tmp/cilium-sysdump-out ]; do sleep 1; done; cat /tmp/cilium-sysdump-out;' > cilium-sysdump-out.zip
+          kubectl -n kube-system wait job/cilium-cli --for=condition=complete --timeout=1m
 
       - name: Post-test information gathering
         if: ${{ failure() }}
@@ -98,8 +106,6 @@ jobs:
           kubectl logs -n kube-system job/cilium-cli
           kubectl exec -n kube-system job/cilium-cli -- cilium status
           kubectl get pods --all-namespaces -o wide
-          curl -sLO https://github.com/cilium/cilium-sysdump/releases/latest/download/cilium-sysdump.zip
-          python cilium-sysdump.zip --output cilium-sysdump-out
         shell: bash {0} # Disable default fail-fast behaviour so that all commands run independently
 
       - name: Clean up GKE
