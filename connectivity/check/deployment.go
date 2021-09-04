@@ -252,7 +252,7 @@ func (ct *ConnectivityTest) deploy(ctx context.Context) error {
 			Kind:    kindClientName,
 			Port:    8080,
 			Image:   defaults.ConnectivityCheckAlpineCurlImage,
-			Command: []string{"/bin/ash", "-c", "sleep 10000000"},
+			Command: []string{"/bin/sh", "-c", "sleep 10000000"},
 		})
 		_, err = ct.clients.src.CreateDeployment(ctx, ct.params.TestNamespace, clientDeployment, metav1.CreateOptions{})
 		if err != nil {
@@ -269,7 +269,7 @@ func (ct *ConnectivityTest) deploy(ctx context.Context) error {
 			Kind:    kindClientName,
 			Port:    8080,
 			Image:   defaults.ConnectivityCheckAlpineCurlImage,
-			Command: []string{"/bin/ash", "-c", "sleep 10000000"},
+			Command: []string{"/bin/sh", "-c", "sleep 10000000"},
 			Labels:  map[string]string{"other": "client"},
 		})
 		_, err = ct.clients.src.CreateDeployment(ctx, ct.params.TestNamespace, clientDeployment, metav1.CreateOptions{})
@@ -508,7 +508,7 @@ func (ct *ConnectivityTest) waitForDNS(ctx context.Context, pod Pod) error {
 		// Don't retry lookups more often than once per second.
 		r := time.After(time.Second)
 
-		target := "kube-dns.kube-system.svc.cluster.local"
+		target := "kube-dns.kube-system.svc"
 		// Warning: ExecInPod ignores ctx. Don't pass it here so we don't
 		// falsely expect the function to be able to be cancelled.
 		stdout, _, err := pod.K8sClient.ExecInPodWithStderr(context.TODO(), pod.Pod.Namespace, pod.Pod.Name,

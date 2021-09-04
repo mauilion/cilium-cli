@@ -72,7 +72,7 @@ const (
 
 	ConnectivityCheckNamespace = "cilium-test"
 
-	ConnectivityCheckAlpineCurlImage = "quay.io/cilium/alpine-curl:v1.3.0@sha256:1d928912e5d9dc9994b038b5df7434790c4bb9bd64f60570d78c1dee13befc76"
+    ConnectivityCheckAlpineCurlImage = "docker.io/mauilion/curl:stable@sha256:a8f11f0132b66ead30c6106a02e9863619b2b1525aa58147c339105203174357"
 	ConnectivityCheckJSONMockImage   = "quay.io/cilium/json-mock:v1.3.0@sha256:2729064827fa9dbfface8d3df424feb6c792a0ba07117b844349635c93c06d2b"
 
 	ConfigMapName = "cilium-config"
